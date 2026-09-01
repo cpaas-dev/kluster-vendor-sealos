@@ -44,8 +44,6 @@ echo "ghcr.io/labring/lvscare:${V}" > "${workdir}/LvscareImageList"
     echo
     echo "## 镜像"
     echo
-    echo "\`${REF}\`"
-    echo
     echo '```bash'
     echo "docker pull ${REF}"
     echo '```'
@@ -69,7 +67,7 @@ echo "ghcr.io/labring/lvscare:${V}" > "${workdir}/LvscareImageList"
 
 create_args=(
     "${V}"
-    --title "Sealos ${V}"
+    --title "${V}"
     --notes-file "${workdir}/notes.md"
 )
 
