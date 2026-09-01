@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "timonwong.shellcheck",
+        "davidanson.vscode-markdownlint",
+        "streetsidesoftware.code-spell-checker"
+    ]
+}

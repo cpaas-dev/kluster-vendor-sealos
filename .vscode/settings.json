@@ -1,0 +1,23 @@
+{
+    "cSpell.words": [
+        "binfmt",
+        "buildx",
+        "containerd",
+        "daocloud",
+        "imagetools",
+        "kluster",
+        "labring",
+        "lvscare",
+        "Lvscare",
+        "mapfile",
+        "mktemp",
+        "oras",
+        "ORAS",
+        "pipefail",
+        "rockylinux",
+        "sealctl",
+        "sealos",
+        "TARGETARCH",
+        "TARGETPLATFORM"
+    ]
+}

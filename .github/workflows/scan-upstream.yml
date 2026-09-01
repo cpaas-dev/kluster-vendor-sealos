@@ -1,0 +1,45 @@
+name: Scan upstream
+
+on:
+  schedule:
+    - cron: "43 3,11,19 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only fetch upstream releases."
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+
+  scan:
+    name: Scan upstream releases
+    runs-on: ubuntu-24.04
+    outputs:
+      missing: ${{ steps.diff.outputs.missing }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Find unreleased upstream versions
+        id: diff
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TRACKED_RELEASES: "5"
+        run: .github/scripts/scan_upstream.bash
+
+  release:
+    name: Release missing versions
+    needs: scan
+    if: needs.scan.outputs.missing != '' && !inputs.dry_run
+    uses: ./.github/workflows/release.yml
+    permissions:
+      contents: write
+      packages: write
+    secrets: inherit
+    with:
+      versions: ${{ needs.scan.outputs.missing }}

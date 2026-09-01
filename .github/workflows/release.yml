@@ -1,0 +1,98 @@
+name: Release
+
+# 构建 sealos vendor 镜像并创建对应的 GitHub Release。
+#
+# 触发方式：
+#   workflow_dispatch    手动指定版本（backfill）
+#   workflow_call        供 scan-upstream.yml 复用
+
+on:
+  workflow_dispatch:
+    inputs:
+      versions:
+        description: "sealos versions (e.g., v5.1.1,v5.1.0)"
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      versions:
+        required: true
+        type: string
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+
+jobs:
+
+  prepare:
+    name: Prepare version matrix
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Resolve and validate versions
+        id: plan
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          VERSIONS: ${{ inputs.versions }}
+        run: .github/scripts/resolve_versions.bash
+
+  build:
+    name: Build ${{ matrix.version }}
+    needs: prepare
+    if: needs.prepare.outputs.matrix != '[]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: write
+      packages: write
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        version: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    concurrency:
+      group: release-${{ matrix.version }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:${{ matrix.version }}
+          build-args: |
+            INST_SEALOS_V=${{ matrix.version }}
+          provenance: false
+          sbom: false
+      - name: Verify manifest list
+        run: |
+          .github/scripts/verify_manifest.bash \
+            "${{ env.IMAGE_NAME }}:${{ matrix.version }}" \
+            linux/amd64 linux/arm64
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          .github/scripts/create_release.bash \
+            "${{ matrix.version }}" \
+            "${{ env.IMAGE_NAME }}:${{ matrix.version }}"
