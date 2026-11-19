@@ -75,6 +75,11 @@ if [[ -n "${GITHUB_SHA:-}" ]]; then
     create_args+=(--target "${GITHUB_SHA}")
 fi
 
+# Mirror upstream: rc builds are GitHub pre-releases, so "latest" stays on a stable one
+if [[ "${V}" == *-rc* ]]; then
+    create_args+=(--prerelease)
+fi
+
 gh release create "${create_args[@]}"
 
 {

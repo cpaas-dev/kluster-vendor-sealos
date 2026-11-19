@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       versions:
-        description: "sealos versions (e.g., v5.1.1,v5.1.0)"
+        description: "sealos versions (e.g., v5.1.1,v5.1.2-rc6)"
         required: true
         type: string
   workflow_call:

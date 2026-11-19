@@ -7,7 +7,10 @@
 
 ## Tag 规则
 
-`vX.Y.Z` 是一个 manifest list，同时含 `linux/amd64` 与 `linux/arm64`。
+`vX.Y.Z` 和 `vX.Y.Z-rcN` 都是一个 manifest list，同时含 `linux/amd64` 与 `linux/arm64`。
+
+rc 版（如 `v5.1.2-rc6`）只能手动发布，GitHub Release 标为 pre-release，和上游一致；
+`-alpha` / `-beta` 不接受。上游 Release 不带校验和，rc 和正式版的构建方式完全相同。
 
 ```bash
 docker pull ghcr.io/cpaas-dev/kluster-vendor-sealos:v5.1.1
@@ -29,7 +32,7 @@ sealos 上游 rc / beta 发得很密、正式版很稀疏，`per_page=100` 拿�
 ## 手动补发
 
 `.github/workflows/release.yml` 可以 `workflow_dispatch`，`versions` 填逗号分隔的版本
-列表。已经有 Release 的版本会被跳过，不会覆盖。
+列表（如 `v5.1.1,v5.1.2-rc6`）。已经有 Release 的版本会被跳过，不会覆盖。
 
 ## 调试
 

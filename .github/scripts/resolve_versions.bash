@@ -8,8 +8,9 @@
 # 用法：resolve_versions.bash
 #
 # 环境变量：
-#   VERSIONS       必填，逗号分隔的版本列表，如 "v5.1.1,v5.1.0"
-#                  只接受正式版 vMAJOR.MINOR.PATCH，带 -rc/-alpha/-beta 一律拒绝
+#   VERSIONS       必填，逗号分隔的版本列表，如 "v5.1.1,v5.1.2-rc6"
+#                  接受正式版 vMAJOR.MINOR.PATCH 和 rc 版 vMAJOR.MINOR.PATCH-rcN；
+#                  -alpha / -beta 一律拒绝。rc 只能手动发布，定时扫描只跟正式版
 #   GH_TOKEN       gh CLI 凭据
 #   GH_REPO        目标仓库，如 cpaas-dev/kluster-vendor-sealos
 #
@@ -37,8 +38,8 @@ fi
 
 wanted=()
 for v in "${versions[@]}"; do
-    if [[ ! "${v}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        fail "invalid or pre-release version: ${v} (expected vMAJOR.MINOR.PATCH)"
+    if [[ ! "${v}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]]; then
+        fail "invalid version: ${v} (expected vMAJOR.MINOR.PATCH or vMAJOR.MINOR.PATCH-rcN)"
     fi
 
     if gh release view "${v}" --json tagName >/dev/null 2>&1; then
